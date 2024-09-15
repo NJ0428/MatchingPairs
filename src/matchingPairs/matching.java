@@ -160,7 +160,8 @@ public class matching {
 
 				if (checkCard(buttonIndexSaver1, buttonIndexSaver2)) {
 					successCount++;
-
+					tryCount--;
+					labelInfo.setText("카드를 맞추려 시도한 횟수는? " + tryCount + "번!");
 					// 성공한 카드 비활성화 처리
 					buttons[buttonIndexSaver1].setEnabled(false); // 첫 번째 성공한 카드 비활성화
 					buttons[buttonIndexSaver2].setEnabled(false); // 두 번째 성공한 카드 비활성화
@@ -218,6 +219,7 @@ public class matching {
 
 			// 모든 버튼을 다시 'cardBack.png' 이미지로 설정
 			for (int i = 0; i < buttons.length; i++) {
+				buttons[i].setEnabled(true);  // 모든 버튼 다시 활성화
 				buttons[i].setIcon(changeImage("cardBack.png"));
 			}
 
