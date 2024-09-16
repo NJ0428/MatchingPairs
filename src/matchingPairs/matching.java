@@ -59,13 +59,13 @@ public class matching {
 			this.setLocation(x, y);
 			this.setVisible(true);
 			this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
+			
+			titleUI(this);
 			infoUI(this);
 			mixCard();
 			this.pack();
 		}
-
-		static void infoUI(MyFrame myFrame) {
+		static void titleUI(MyFrame myFrame) {
 			titleTop = new JPanel();
 			titleTop.setPreferredSize(new Dimension(1280, 40));
 			titleTop.setBackground(new Color(25, 25, 112));
@@ -78,7 +78,8 @@ public class matching {
 
 			titleTop.add(labelInfo);
 			myFrame.add("North", titleTop);
-
+		}
+		static void infoUI(MyFrame myFrame) {
 			cardImg = new JPanel();
 			cardImg.setLayout(new GridLayout(4, 4));
 			cardImg.setPreferredSize(new Dimension(1280, 720));
