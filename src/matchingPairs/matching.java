@@ -270,7 +270,8 @@ public class matching {
 			});
 			timer.start();
 		}
-//테스트
+//테스트2
+		
 		private int getButtonIndex(JButton btn) {
 			for (int i = 0; i < 16; i++) {
 				if (buttons[i] == btn) {
