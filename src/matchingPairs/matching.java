@@ -265,7 +265,6 @@ public class matching {
 					buttons[buttonIndexSaver2].setIcon(changeImage("cardBack.png"));
 					openCount = 0; 
 					timer.stop();
-					
 				}
 			});
 			timer.start();
