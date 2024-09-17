@@ -252,9 +252,8 @@ public class matching {
 		}
 
 		private boolean checkCard(int index1, int index2) {
-			if (index1 == index2) {
-				return false;
-			}
+			if (index1 == index2)  return false;
+			
 			return images[index1].equals(images[index2]);
 		}
 
@@ -264,7 +263,7 @@ public class matching {
 				public void actionPerformed(ActionEvent e) {
 					buttons[buttonIndexSaver1].setIcon(changeImage("cardBack.png"));
 					buttons[buttonIndexSaver2].setIcon(changeImage("cardBack.png"));
-					openCount = 0;
+					openCount = 0; 
 					timer.stop();
 				}
 			});
