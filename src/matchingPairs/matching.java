@@ -23,20 +23,30 @@ public class matching {
 	static JPanel titleTop; // 제목
 	static JPanel cardImg; // 카드
 	static JLabel labelInfo;
-	static JButton[] buttons = new JButton[16]; // 카드 수
-	static String[] images = {
-			"card01.png", "card02.png", "card03.png", "card04.png",
-			"card05.png", "card06.png", "card07.png", "card08.png",
-			"card01.png", "card02.png", "card03.png", "card04.png",
-			"card05.png", "card06.png", "card07.png", "card08.png",
-	};
-
-	static int openCount = 0; // 오픈 카운트
-	static int buttonIndexSaver1 = 0; // 카드 인덱스 1
-	static int buttonIndexSaver2 = 0; // 카드 인덱스 2
-	static int tryCount = 0; // 시도 회수
-	static int successCount = 0; // 성공한 카드 카운트
-	static Timer timer;
+    static final int TOTAL_CARDS = 16;
+    static final int GRID_ROWS = 4;
+    static final int GRID_COLS = 4;
+    static int openCount = 0; // 오픈 카운트
+    static int buttonIndexSaver1 = 0; // 카드 인덱스 1
+    static int buttonIndexSaver2 = 0; // 카드 인덱스 2
+    static int tryCount = 0; // 시도 회수
+    static int successCount = 0; // 성공한 카드 카운트
+    static Timer timer;
+    
+	static JButton[] buttons = new JButton[TOTAL_CARDS]; // 카드 수
+    // 카드 이미지
+    static String[] images2 = {
+        "card01.png", "card02.png", "card03.png", "card04.png",
+        "card05.png", "card06.png", "card07.png", "card08.png"
+    };
+    
+    static String[] images = new String[TOTAL_CARDS];
+    static {
+        for (int i = 0; i < images2.length; i++) {
+        	images[i] = images2[i];
+        	images[i + images2.length] = images2[i];
+        }
+    }
 
 	static class MyFrame extends JFrame implements ActionListener {
 		public MyFrame() {
@@ -81,7 +91,7 @@ public class matching {
 		}
 		static void infoUI(MyFrame myFrame) {
 			cardImg = new JPanel();
-			cardImg.setLayout(new GridLayout(4, 4));
+			cardImg.setLayout(new GridLayout(GRID_ROWS, GRID_COLS));
 			cardImg.setPreferredSize(new Dimension(1280, 720));
 			for (int i = 0; i < 16; i++) {
 				buttons[i] = new JButton();
@@ -147,54 +157,59 @@ public class matching {
 			openCount++;
 			handleCardClick(index);
 		}
-
 		private void handleCardClick(int index) {
-			if (openCount == 1) {
-				buttonIndexSaver1 = index;
-			} else if (openCount == 2) {
-				buttonIndexSaver2 = index;
-				tryCount++;
-				titleTop.setBackground(new Color(34, 40, 49));
-				labelInfo.setText("카드를 맞추려 시도한 횟수는? " + tryCount + "번!");
-				labelInfo.revalidate();
-				labelInfo.repaint();
+		    if (openCount == 1) {
+		        buttonIndexSaver1 = index;  // 첫 번째 카드 저장
+		    } else if (openCount == 2) {
+		        buttonIndexSaver2 = index;  // 두 번째 카드 저장
+		        tryCount++;  // 시도 횟수 증가
+		        updateStatusMessage("카드를 맞추려 시도한 횟수는? " + tryCount + "번!");
 
-				if (checkCard(buttonIndexSaver1, buttonIndexSaver2)) {
-					successCount++;
-					tryCount--;
-					labelInfo.setText("카드를 맞추려 시도한 횟수는? " + tryCount + "번!");
-					// 성공한 카드 비활성화 처리
-					buttons[buttonIndexSaver1].setEnabled(false); // 첫 번째 성공한 카드 비활성화
-					buttons[buttonIndexSaver2].setEnabled(false); // 두 번째 성공한 카드 비활성화
-
-					if (successCount == 8) {
-						// 성공 메시지 출력
-						labelInfo.setText("성공! 모든 카드를 맞췄습니다.");
-						labelInfo.revalidate();
-						labelInfo.repaint();
-
-						if (!isResetButtonAdded()) {
-							// 리셋 버튼 생성
-							JButton resetButton = new JButton("다시 시작");
-							resetButton.addActionListener(new ActionListener() {
-								@Override
-								public void actionPerformed(ActionEvent e) {
-									resetGame(); // 리셋 버튼을 클릭하면 게임을 초기화
-								}
-							});
-
-							// 패널에 리셋 버튼 추가
-							titleTop.add(resetButton);
-							titleTop.revalidate();
-							titleTop.repaint();
-						}
-					}
-					openCount = 0;
-				} else {
-					backToCard();
-				}
-			}
+		        // 카드가 일치하는지 체크
+		        if (checkCard(buttonIndexSaver1, buttonIndexSaver2)) {
+		            handleMatchSuccess();  // 카드 매칭 성공 처리
+		        } else {
+		            backToCard();  // 카드 뒤집기 처리
+		        }
+		    }
 		}
+
+		private void handleMatchSuccess() {
+		    successCount++;
+		    tryCount--;  // 성공했으므로 시도 횟수 감소
+		    updateStatusMessage("카드를 맞추려 시도한 횟수는? " + tryCount + "번!");
+
+		    // 성공한 카드 비활성화
+		    buttons[buttonIndexSaver1].setEnabled(false);
+		    buttons[buttonIndexSaver2].setEnabled(false);
+
+		    // 모든 카드가 맞춰졌을 경우
+		    if (successCount == 8) {
+		        updateStatusMessage("성공! 모든 카드를 맞췄습니다.");
+		        addResetButtonIfNeeded();
+		    }
+
+		    openCount = 0;  // 오픈된 카드 카운트 초기화
+		}
+
+		// 상태 메시지 업데이트 메서드
+		private void updateStatusMessage(String message) {
+		    labelInfo.setText(message);
+		    labelInfo.revalidate();
+		    labelInfo.repaint();
+		}
+
+		// 리셋 버튼이 없을 경우 추가
+		private void addResetButtonIfNeeded() {
+		    if (!isResetButtonAdded()) {
+		        JButton resetButton = new JButton("다시 시작");
+		        resetButton.addActionListener(e -> resetGame());
+		        titleTop.add(resetButton);
+		        titleTop.revalidate();
+		        titleTop.repaint();
+		    }
+		}
+
 
 		// 리셋 버튼이 이미 추가되었는지 확인하는 메서드
 		private boolean isResetButtonAdded() {
