@@ -189,7 +189,6 @@ public class matching {
 		        addResetButtonIfNeeded();
 		    }
 
-		    
 		    openCount = 0;  // 오픈된 카드 카운트 초기화
 		}
 
