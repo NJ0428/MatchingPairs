@@ -189,6 +189,7 @@ public class matching {
 		        addResetButtonIfNeeded();
 		    }
 
+		    
 		    openCount = 0;  // 오픈된 카드 카운트 초기화
 		}
 
@@ -265,6 +266,7 @@ public class matching {
 					buttons[buttonIndexSaver2].setIcon(changeImage("cardBack.png"));
 					openCount = 0; 
 					timer.stop();
+					
 				}
 			});
 			timer.start();
