@@ -4,9 +4,8 @@
 <div style="margin-bottom: 20px;">
   <h2 style="color: #007bff;">게임 설명 및 규칙</h2>
 
-  <h3 style="margin-top: 10px;">게임 보드 준비</h3>
   <ul style="margin-left: 20px;">
-    <li>여러 장의 카드가 뒷면으로 놓여 있습니다.</li>
+    <li>25장의 카드가 뒷면으로 놓여 있습니다.</li>
     <li>각 카드에는 다양한 이미지가 있으며, 동일한 쌍의 이미지가 한 세트로 존재합니다.</li>
   </ul>
 </div>
@@ -24,8 +23,6 @@
   <h3 style="margin-top: 10px;">게임 목표</h3>
   <ul style="margin-left: 20px;">
     <li>가능한 적은 횟수로 <strong>모든 짝을 맞추는 것</strong>이 목표입니다.</li>
-    <li>게임 난이도에 따라 보드 크기(카드 수)가 증가할 수 있습니다.</li>
-    <li>시간 제한이 있는 경우에는 제한 시간 안에 짝을 모두 맞춰야 승리합니다.</li>
   </ul>
 </div>
 <h3>💻게임시작화면</h3>
