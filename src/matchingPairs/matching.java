@@ -13,19 +13,27 @@ import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
+import javax.swing.InputMap;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.SwingConstants;
@@ -339,6 +347,10 @@ class InstructionFrame extends JFrame {
 				4. 두 카드의 그림이 다르면 실패! 1초 후 카드가 다시 뒤집힙니다.
 				5. 모든 카드 쌍을 맞추면 게임이 완료됩니다.
 
+				■ 게임 조작법
+				- ESC 키: 게임 중 메뉴 열기 (일시정지, 다시시작, 메인메뉴, 종료)
+				- 마우스 클릭: 카드 선택
+
 				■ 게임 팁
 				- 카드의 위치를 기억하세요!
 				- 처음 몇 장은 여러 카드를 뒤집어 위치를 파악하는 것이 좋습니다.
@@ -486,6 +498,205 @@ class CardManager {
 	}
 }
 
+// 게임 중 메뉴 다이얼로그 클래스
+class GameMenuDialog extends JDialog {
+	private MatchingGameFrame gameFrame;
+	private boolean resumeGame = true;
+
+	public GameMenuDialog(MatchingGameFrame parent) {
+		super(parent, "게임 메뉴", true);
+		this.gameFrame = parent;
+		initializeDialog();
+		createMenuPanel();
+		UIUtils.centerFrameOnScreen(this);
+		setVisible(true);
+	}
+
+	private void initializeDialog() {
+		setSize(400, 300);
+		setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+		setLayout(new BorderLayout());
+		setResizable(false);
+
+		// ESC 키로 다이얼로그 닫기
+		addWindowListener(new java.awt.event.WindowAdapter() {
+			@Override
+			public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+				resumeGame();
+			}
+		});
+	}
+
+	private void createMenuPanel() {
+		JPanel mainPanel = new JPanel() {
+			@Override
+			protected void paintComponent(java.awt.Graphics g) {
+				super.paintComponent(g);
+				java.awt.Graphics2D g2d = (java.awt.Graphics2D) g;
+				g2d.setRenderingHint(java.awt.RenderingHints.KEY_RENDERING,
+						java.awt.RenderingHints.VALUE_RENDER_QUALITY);
+
+				// 그라데이션 배경
+				java.awt.GradientPaint gradient = new java.awt.GradientPaint(
+						0, 0, GameConstants.PRIMARY_DARK,
+						0, getHeight(), GameConstants.SECONDARY_BLUE);
+				g2d.setPaint(gradient);
+				g2d.fillRect(0, 0, getWidth(), getHeight());
+			}
+		};
+		mainPanel.setLayout(new GridBagLayout());
+
+		GridBagConstraints gbc = new GridBagConstraints();
+
+		// 제목
+		JLabel titleLabel = new JLabel("게임 일시정지", SwingConstants.CENTER);
+		titleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 28));
+		titleLabel.setForeground(Color.WHITE);
+		gbc.gridx = 0;
+		gbc.gridy = 0;
+		gbc.insets = new Insets(20, 0, 30, 0);
+		mainPanel.add(titleLabel, gbc);
+
+		// 버튼 패널
+		JPanel buttonPanel = new JPanel();
+		buttonPanel.setOpaque(false);
+		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
+
+		// 게임 계속하기 버튼
+		JButton resumeButton = createMenuButton("게임 계속하기", GameConstants.SUCCESS_GREEN);
+		resumeButton.addActionListener(e -> resumeGame());
+		buttonPanel.add(resumeButton);
+		buttonPanel.add(Box.createVerticalStrut(15));
+
+		// 게임 다시 시작 버튼
+		JButton restartButton = createMenuButton("게임 다시 시작", GameConstants.PRIMARY_BLUE);
+		restartButton.addActionListener(e -> restartGame());
+		buttonPanel.add(restartButton);
+		buttonPanel.add(Box.createVerticalStrut(15));
+
+		// 메인 메뉴로 버튼
+		JButton mainMenuButton = createMenuButton("메인 메뉴로", GameConstants.WARNING_ORANGE);
+		mainMenuButton.addActionListener(e -> goToMainMenu());
+		buttonPanel.add(mainMenuButton);
+		buttonPanel.add(Box.createVerticalStrut(15));
+
+		// 게임 종료 버튼
+		JButton exitButton = createMenuButton("게임 종료", new Color(220, 38, 127));
+		exitButton.addActionListener(e -> exitGame());
+		buttonPanel.add(exitButton);
+
+		gbc.gridy = 1;
+		gbc.insets = new Insets(0, 0, 20, 0);
+		mainPanel.add(buttonPanel, gbc);
+
+		add(mainPanel, BorderLayout.CENTER);
+	}
+
+	private JButton createMenuButton(String text, Color baseColor) {
+		JButton button = new JButton(text) {
+			@Override
+			protected void paintComponent(java.awt.Graphics g) {
+				java.awt.Graphics2D g2d = (java.awt.Graphics2D) g;
+				g2d.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,
+						java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+
+				// 둥근 모서리 배경
+				g2d.setColor(getBackground());
+				g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+
+				// 텍스트 그리기
+				super.paintComponent(g);
+			}
+		};
+
+		button.setPreferredSize(new Dimension(250, 50));
+		button.setMaximumSize(new Dimension(250, 50));
+		button.setFont(new Font("맑은 고딕", Font.BOLD, 18));
+		button.setBackground(baseColor);
+		button.setForeground(Color.WHITE);
+		button.setFocusPainted(false);
+		button.setBorderPainted(false);
+		button.setContentAreaFilled(false);
+		button.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		// 호버 효과
+		button.addMouseListener(new java.awt.event.MouseAdapter() {
+			private Color originalColor = baseColor;
+
+			public void mouseEntered(java.awt.event.MouseEvent evt) {
+				button.setBackground(brightenColor(originalColor, 0.2f));
+				button.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+			}
+
+			public void mouseExited(java.awt.event.MouseEvent evt) {
+				button.setBackground(originalColor);
+				button.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+			}
+		});
+
+		return button;
+	}
+
+	private Color brightenColor(Color color, float factor) {
+		int r = Math.min(255, (int) (color.getRed() * (1 + factor)));
+		int g = Math.min(255, (int) (color.getGreen() * (1 + factor)));
+		int b = Math.min(255, (int) (color.getBlue() * (1 + factor)));
+		return new Color(r, g, b);
+	}
+
+	private void resumeGame() {
+		resumeGame = true;
+		dispose();
+	}
+
+	private void restartGame() {
+		int choice = JOptionPane.showConfirmDialog(
+				this,
+				"현재 게임을 다시 시작하시겠습니까?\n진행 상황이 모두 사라집니다.",
+				"게임 다시 시작",
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.QUESTION_MESSAGE);
+
+		if (choice == JOptionPane.YES_OPTION) {
+			resumeGame = false;
+			gameFrame.resetGame();
+			dispose();
+		}
+	}
+
+	private void goToMainMenu() {
+		int choice = JOptionPane.showConfirmDialog(
+				this,
+				"메인 메뉴로 돌아가시겠습니까?\n현재 게임 진행 상황이 사라집니다.",
+				"메인 메뉴로",
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.QUESTION_MESSAGE);
+
+		if (choice == JOptionPane.YES_OPTION) {
+			resumeGame = false;
+			gameFrame.goToMainMenu();
+			dispose();
+		}
+	}
+
+	private void exitGame() {
+		int choice = JOptionPane.showConfirmDialog(
+				this,
+				"게임을 종료하시겠습니까?",
+				"게임 종료",
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.QUESTION_MESSAGE);
+
+		if (choice == JOptionPane.YES_OPTION) {
+			System.exit(0);
+		}
+	}
+
+	public boolean shouldResumeGame() {
+		return resumeGame;
+	}
+}
+
 // UI 유틸리티 클래스
 class UIUtils {
 	public static ImageIcon createScaledImageIcon(String filename) {
@@ -518,6 +729,14 @@ class UIUtils {
 		int x = (int) ((screenSize.getWidth() - frameSize.getWidth()) / 2);
 		int y = (int) ((screenSize.getHeight() - frameSize.getHeight()) / 2);
 		frame.setLocation(x, y);
+	}
+
+	public static void centerFrameOnScreen(JDialog dialog) {
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		Dimension dialogSize = dialog.getSize();
+		int x = (int) ((screenSize.getWidth() - dialogSize.getWidth()) / 2);
+		int y = (int) ((screenSize.getHeight() - dialogSize.getHeight()) / 2);
+		dialog.setLocation(x, y);
 	}
 }
 
@@ -559,10 +778,30 @@ class MatchingGameFrame extends JFrame implements ActionListener {
 		addWindowListener(new java.awt.event.WindowAdapter() {
 			@Override
 			public void windowClosing(java.awt.event.WindowEvent windowEvent) {
-				parentFrame.showMenu();
-				dispose();
+				showGameMenu();
 			}
 		});
+
+		// ESC 키 바인딩 설정
+		setupKeyBindings();
+	}
+
+	private void setupKeyBindings() {
+		// ESC 키 액션 설정
+		InputMap inputMap = getRootPane().getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW);
+		ActionMap actionMap = getRootPane().getActionMap();
+
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "showMenu");
+		actionMap.put("showMenu", new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				showGameMenu();
+			}
+		});
+
+		// 포커스 설정으로 키 이벤트 수신 보장
+		setFocusable(true);
+		requestFocus();
 	}
 
 	private void createUI() {
@@ -718,7 +957,28 @@ class MatchingGameFrame extends JFrame implements ActionListener {
 				.anyMatch(btn -> "다시 시작".equals(btn.getText()));
 	}
 
-	private void resetGame() {
+	private void showGameMenu() {
+		// 게임이 진행 중일 때만 메뉴 표시
+		if (flipBackTimer != null && flipBackTimer.isRunning()) {
+			flipBackTimer.stop();
+		}
+
+		GameMenuDialog menuDialog = new GameMenuDialog(this);
+
+		// 다이얼로그가 닫힌 후 포커스 복원
+		SwingUtilities.invokeLater(() -> {
+			requestFocus();
+			if (flipBackTimer != null && !menuDialog.shouldResumeGame()) {
+				// 게임이 재시작되거나 메뉴로 이동한 경우 타이머 정리
+				flipBackTimer = null;
+			} else if (flipBackTimer != null) {
+				// 게임을 계속하는 경우 타이머 재시작
+				flipBackTimer.start();
+			}
+		});
+	}
+
+	public void resetGame() {
 		gameState.reset();
 		cardManager.shuffleCards();
 
@@ -740,6 +1000,14 @@ class MatchingGameFrame extends JFrame implements ActionListener {
 
 		titlePanel.revalidate();
 		titlePanel.repaint();
+
+		// 포커스 복원
+		requestFocus();
+	}
+
+	public void goToMainMenu() {
+		parentFrame.showMenu();
+		dispose();
 	}
 
 	private int getButtonIndex(JButton button) {
