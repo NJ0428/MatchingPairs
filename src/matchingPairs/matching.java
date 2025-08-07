@@ -69,11 +69,11 @@ class GameConstants {
 	// 메뉴 관련 상수
 	public static final int MENU_BUTTON_WIDTH = 280;
 	public static final int MENU_BUTTON_HEIGHT = 70;
-	public static final Font TITLE_FONT = new Font("Segoe UI", Font.BOLD, 56);
-	public static final Font SUBTITLE_FONT = new Font("Segoe UI", Font.PLAIN, 18);
-	public static final Font BUTTON_FONT = new Font("Segoe UI", Font.BOLD, 22);
-	public static final Font INSTRUCTION_FONT = new Font("Segoe UI", Font.PLAIN, 16);
-	public static final Font STATUS_FONT = new Font("Segoe UI", Font.BOLD, 20);
+	public static final Font TITLE_FONT = new Font("맑은 고딕", Font.BOLD, 56);
+	public static final Font SUBTITLE_FONT = new Font("맑은 고딕", Font.PLAIN, 18);
+	public static final Font BUTTON_FONT = new Font("맑은 고딕", Font.BOLD, 22);
+	public static final Font INSTRUCTION_FONT = new Font("맑은 고딕", Font.PLAIN, 16);
+	public static final Font STATUS_FONT = new Font("맑은 고딕", Font.BOLD, 20);
 
 	// 모던한 색상 팔레트
 	public static final Color PRIMARY_DARK = new Color(15, 23, 42); // 진한 네이비
@@ -147,7 +147,7 @@ class StartMenuFrame extends JFrame {
 		titlePanel.setOpaque(false);
 		titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.Y_AXIS));
 
-		JLabel titleLabel = new JLabel("🎮 Matching Game", SwingConstants.CENTER);
+		JLabel titleLabel = new JLabel("Matching Game", SwingConstants.CENTER);
 		titleLabel.setFont(GameConstants.TITLE_FONT);
 		titleLabel.setForeground(Color.WHITE);
 		titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -172,19 +172,19 @@ class StartMenuFrame extends JFrame {
 		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
 
 		// 게임 시작 버튼
-		JButton startButton = createMenuButton("🚀 게임 시작", GameConstants.SUCCESS_GREEN);
+		JButton startButton = createMenuButton("게임 시작", GameConstants.SUCCESS_GREEN);
 		startButton.addActionListener(e -> startGame());
 		buttonPanel.add(startButton);
 		buttonPanel.add(Box.createVerticalStrut(20));
 
 		// 게임 방법 버튼
-		JButton instructionButton = createMenuButton("📖 게임 방법", GameConstants.PRIMARY_BLUE);
+		JButton instructionButton = createMenuButton("게임 방법", GameConstants.PRIMARY_BLUE);
 		instructionButton.addActionListener(e -> showInstructions());
 		buttonPanel.add(instructionButton);
 		buttonPanel.add(Box.createVerticalStrut(20));
 
 		// 게임 종료 버튼
-		JButton exitButton = createMenuButton("🚪 게임 종료", GameConstants.WARNING_ORANGE);
+		JButton exitButton = createMenuButton("게임 종료", GameConstants.WARNING_ORANGE);
 		exitButton.addActionListener(e -> exitGame());
 		buttonPanel.add(exitButton);
 
@@ -322,29 +322,29 @@ class InstructionFrame extends JFrame {
 
 		// 제목
 		JLabel titleLabel = new JLabel("게임 방법", SwingConstants.CENTER);
-		titleLabel.setFont(new Font("Sans-Serif", Font.BOLD, 24));
+		titleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 24));
 		titleLabel.setForeground(GameConstants.BACKGROUND_COLOR);
 		titleLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(20, 0, 20, 0));
 		mainPanel.add(titleLabel, BorderLayout.NORTH);
 
 		// 게임 방법 설명
 		String instructions = """
-				🎯 게임 목표
+				■ 게임 목표
 				- 4x4 격자에 배치된 16장의 카드 중 같은 그림의 카드 8쌍을 모두 찾아 맞추는 게임입니다.
 
-				🎮 게임 방법
+				■ 게임 방법
 				1. 카드를 클릭하면 카드가 뒤집혀 그림이 나타납니다.
 				2. 두 장의 카드를 선택할 수 있습니다.
 				3. 두 카드의 그림이 같으면 성공! 카드가 그대로 남아있습니다.
 				4. 두 카드의 그림이 다르면 실패! 1초 후 카드가 다시 뒤집힙니다.
 				5. 모든 카드 쌍을 맞추면 게임이 완료됩니다.
 
-				🏆 게임 팁
+				■ 게임 팁
 				- 카드의 위치를 기억하세요!
 				- 처음 몇 장은 여러 카드를 뒤집어 위치를 파악하는 것이 좋습니다.
 				- 시도 횟수가 화면 상단에 표시됩니다.
 
-				🔄 다시 시작
+				■ 다시 시작
 				- 게임 완료 후 '다시 시작' 버튼을 클릭하면 새로운 게임을 시작할 수 있습니다.
 				- 카드 배치가 무작위로 섞입니다.
 				""";
@@ -579,12 +579,12 @@ class MatchingGameFrame extends JFrame implements ActionListener {
 		statusLabel = new JLabel("Matching Game");
 		statusLabel.setPreferredSize(new Dimension(GameConstants.FRAME_WIDTH, 30));
 		statusLabel.setForeground(Color.WHITE);
-		statusLabel.setFont(new Font("Sans-Serif", Font.BOLD, 25));
+		statusLabel.setFont(GameConstants.STATUS_FONT);
 		statusLabel.setHorizontalAlignment(JLabel.CENTER);
 
 		// 메뉴로 돌아가기 버튼
 		JButton backButton = new JButton("메뉴로");
-		backButton.setFont(new Font("Sans-Serif", Font.BOLD, 14));
+		backButton.setFont(new Font("맑은 고딕", Font.BOLD, 14));
 		backButton.setBackground(GameConstants.BUTTON_COLOR);
 		backButton.setForeground(Color.WHITE);
 		backButton.setFocusPainted(false);
@@ -671,7 +671,7 @@ class MatchingGameFrame extends JFrame implements ActionListener {
 		gameState.resetOpenCount();
 
 		if (gameState.isGameComplete()) {
-			updateStatusMessage("🎉 축하합니다! 모든 카드를 맞췄습니다! (총 " + gameState.getTryCount() + "번 시도)");
+			updateStatusMessage("★ 축하합니다! 모든 카드를 맞췄습니다! (총 " + gameState.getTryCount() + "번 시도)");
 			addResetButton();
 		}
 	}
@@ -699,7 +699,7 @@ class MatchingGameFrame extends JFrame implements ActionListener {
 			return;
 
 		JButton resetButton = new JButton("다시 시작");
-		resetButton.setFont(new Font("Sans-Serif", Font.BOLD, 14));
+		resetButton.setFont(new Font("맑은 고딕", Font.BOLD, 14));
 		resetButton.setBackground(GameConstants.BUTTON_COLOR);
 		resetButton.setForeground(Color.WHITE);
 		resetButton.setFocusPainted(false);
