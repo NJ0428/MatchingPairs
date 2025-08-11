@@ -14,7 +14,7 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -50,8 +50,30 @@ public class matching {
 	}
 }
 
+// 게임 난이도 열거형
+enum GameDifficulty {
+	EASY(8, 2, 4, 4, "이지 모드"),
+	NORMAL(16, 4, 4, 8, "노멀 모드"),
+	HARD(24, 4, 6, 12, "하드 모드");
+
+	public final int totalCards;
+	public final int gridRows;
+	public final int gridCols;
+	public final int pairsToMatch;
+	public final String displayName;
+
+	GameDifficulty(int totalCards, int gridRows, int gridCols, int pairsToMatch, String displayName) {
+		this.totalCards = totalCards;
+		this.gridRows = gridRows;
+		this.gridCols = gridCols;
+		this.pairsToMatch = pairsToMatch;
+		this.displayName = displayName;
+	}
+}
+
 // 게임 상수들을 관리하는 클래스
 class GameConstants {
+	// 기본값 (노멀 모드)
 	public static final int TOTAL_CARDS = 16;
 	public static final int GRID_ROWS = 4;
 	public static final int GRID_COLS = 4;
@@ -278,11 +300,11 @@ class StartMenuFrame extends JFrame {
 	}
 
 	private void startGame() {
-		if (gameFrame != null) {
-			gameFrame.dispose();
-		}
-		gameFrame = new MatchingGameFrame(this);
-		setVisible(false);
+		showDifficultySelection();
+	}
+
+	private void showDifficultySelection() {
+		DifficultySelectionDialog difficultyDialog = new DifficultySelectionDialog(this);
 	}
 
 	private void showInstructions() {
@@ -298,6 +320,166 @@ class StartMenuFrame extends JFrame {
 
 	public void showMenu() {
 		setVisible(true);
+	}
+
+	public void startGameWithDifficulty(GameDifficulty difficulty) {
+		if (gameFrame != null) {
+			gameFrame.dispose();
+		}
+		gameFrame = new MatchingGameFrame(this, difficulty);
+		setVisible(false);
+	}
+}
+
+// 난이도 선택 다이얼로그
+class DifficultySelectionDialog extends JDialog {
+	private StartMenuFrame parentFrame;
+
+	public DifficultySelectionDialog(StartMenuFrame parent) {
+		super(parent, "난이도 선택", true);
+		this.parentFrame = parent;
+		initializeDialog();
+		createDifficultyPanel();
+		UIUtils.centerFrameOnScreen(this);
+		setVisible(true);
+	}
+
+	private void initializeDialog() {
+		setSize(500, 400);
+		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+		setLayout(new BorderLayout());
+		setResizable(false);
+	}
+
+	private void createDifficultyPanel() {
+		JPanel mainPanel = new JPanel() {
+			@Override
+			protected void paintComponent(java.awt.Graphics g) {
+				super.paintComponent(g);
+				java.awt.Graphics2D g2d = (java.awt.Graphics2D) g;
+				g2d.setRenderingHint(java.awt.RenderingHints.KEY_RENDERING,
+						java.awt.RenderingHints.VALUE_RENDER_QUALITY);
+
+				// 그라데이션 배경
+				java.awt.GradientPaint gradient = new java.awt.GradientPaint(
+						0, 0, GameConstants.PRIMARY_DARK,
+						0, getHeight(), GameConstants.SECONDARY_BLUE);
+				g2d.setPaint(gradient);
+				g2d.fillRect(0, 0, getWidth(), getHeight());
+			}
+		};
+		mainPanel.setLayout(new GridBagLayout());
+
+		GridBagConstraints gbc = new GridBagConstraints();
+
+		// 제목
+		JLabel titleLabel = new JLabel("난이도를 선택하세요", SwingConstants.CENTER);
+		titleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 28));
+		titleLabel.setForeground(Color.WHITE);
+		gbc.gridx = 0;
+		gbc.gridy = 0;
+		gbc.insets = new Insets(30, 0, 40, 0);
+		mainPanel.add(titleLabel, gbc);
+
+		// 버튼 패널
+		JPanel buttonPanel = new JPanel();
+		buttonPanel.setOpaque(false);
+		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
+
+		// 이지 모드 버튼
+		JButton easyButton = createDifficultyButton("이지 모드", "2x4 격자 (8장)", GameConstants.SUCCESS_GREEN);
+		easyButton.addActionListener(e -> selectDifficulty(GameDifficulty.EASY));
+		buttonPanel.add(easyButton);
+		buttonPanel.add(Box.createVerticalStrut(20));
+
+		// 노멀 모드 버튼
+		JButton normalButton = createDifficultyButton("노멀 모드", "4x4 격자 (16장)", GameConstants.PRIMARY_BLUE);
+		normalButton.addActionListener(e -> selectDifficulty(GameDifficulty.NORMAL));
+		buttonPanel.add(normalButton);
+		buttonPanel.add(Box.createVerticalStrut(20));
+
+		// 하드 모드 버튼
+		JButton hardButton = createDifficultyButton("하드 모드", "4x6 격자 (24장)", GameConstants.WARNING_ORANGE);
+		hardButton.addActionListener(e -> selectDifficulty(GameDifficulty.HARD));
+		buttonPanel.add(hardButton);
+
+		gbc.gridy = 1;
+		gbc.insets = new Insets(0, 0, 30, 0);
+		mainPanel.add(buttonPanel, gbc);
+
+		add(mainPanel, BorderLayout.CENTER);
+	}
+
+	private JButton createDifficultyButton(String title, String description, Color baseColor) {
+		JPanel buttonContent = new JPanel();
+		buttonContent.setLayout(new BoxLayout(buttonContent, BoxLayout.Y_AXIS));
+		buttonContent.setOpaque(false);
+
+		JLabel titleLabel = new JLabel(title, SwingConstants.CENTER);
+		titleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 20));
+		titleLabel.setForeground(Color.WHITE);
+		titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		JLabel descLabel = new JLabel(description, SwingConstants.CENTER);
+		descLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+		descLabel.setForeground(new Color(203, 213, 225));
+		descLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		buttonContent.add(titleLabel);
+		buttonContent.add(Box.createVerticalStrut(5));
+		buttonContent.add(descLabel);
+
+		JButton button = new JButton() {
+			@Override
+			protected void paintComponent(java.awt.Graphics g) {
+				java.awt.Graphics2D g2d = (java.awt.Graphics2D) g;
+				g2d.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,
+						java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+
+				// 둥근 모서리 배경
+				g2d.setColor(getBackground());
+				g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
+			}
+		};
+
+		button.setLayout(new BorderLayout());
+		button.add(buttonContent, BorderLayout.CENTER);
+		button.setPreferredSize(new Dimension(350, 80));
+		button.setMaximumSize(new Dimension(350, 80));
+		button.setBackground(baseColor);
+		button.setFocusPainted(false);
+		button.setBorderPainted(false);
+		button.setContentAreaFilled(false);
+		button.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		// 호버 효과
+		button.addMouseListener(new java.awt.event.MouseAdapter() {
+			private Color originalColor = baseColor;
+
+			public void mouseEntered(java.awt.event.MouseEvent evt) {
+				button.setBackground(brightenColor(originalColor, 0.2f));
+				button.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+			}
+
+			public void mouseExited(java.awt.event.MouseEvent evt) {
+				button.setBackground(originalColor);
+				button.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+			}
+		});
+
+		return button;
+	}
+
+	private Color brightenColor(Color color, float factor) {
+		int r = Math.min(255, (int) (color.getRed() * (1 + factor)));
+		int g = Math.min(255, (int) (color.getGreen() * (1 + factor)));
+		int b = Math.min(255, (int) (color.getBlue() * (1 + factor)));
+		return new Color(r, g, b);
+	}
+
+	private void selectDifficulty(GameDifficulty difficulty) {
+		parentFrame.startGameWithDifficulty(difficulty);
+		dispose();
 	}
 }
 
@@ -338,7 +520,12 @@ class InstructionFrame extends JFrame {
 		// 게임 방법 설명
 		String instructions = """
 				■ 게임 목표
-				- 4x4 격자에 배치된 16장의 카드 중 같은 그림의 카드 8쌍을 모두 찾아 맞추는 게임입니다.
+				- 격자에 배치된 카드 중 같은 그림의 카드 쌍을 모두 찾아 맞추는 게임입니다.
+
+				■ 난이도별 설명
+				- 이지 모드: 2x4 격자 (8장, 4쌍)
+				- 노멀 모드: 4x4 격자 (16장, 8쌍)
+				- 하드 모드: 4x6 격자 (24장, 12쌍)
 
 				■ 게임 방법
 				1. 카드를 클릭하면 카드가 뒤집혀 그림이 나타납니다.
@@ -355,6 +542,7 @@ class InstructionFrame extends JFrame {
 				- 카드의 위치를 기억하세요!
 				- 처음 몇 장은 여러 카드를 뒤집어 위치를 파악하는 것이 좋습니다.
 				- 시도 횟수가 화면 상단에 표시됩니다.
+				- 이지 모드부터 시작해서 점차 어려운 난이도에 도전해보세요!
 
 				■ 다시 시작
 				- 게임 완료 후 '다시 시작' 버튼을 클릭하면 새로운 게임을 시작할 수 있습니다.
@@ -400,6 +588,11 @@ class GameState {
 	private int secondCardIndex = -1;
 	private int tryCount = 0;
 	private int successCount = 0;
+	private GameDifficulty difficulty;
+
+	public GameState(GameDifficulty difficulty) {
+		this.difficulty = difficulty;
+	}
 
 	public void reset() {
 		openCount = 0;
@@ -460,24 +653,34 @@ class GameState {
 	}
 
 	public boolean isGameComplete() {
-		return successCount == GameConstants.PAIRS_TO_MATCH;
+		return successCount == difficulty.pairsToMatch;
+	}
+
+	public GameDifficulty getDifficulty() {
+		return difficulty;
 	}
 }
 
 // 카드 관리 클래스
 class CardManager {
 	private String[] cardImages;
+	private GameDifficulty difficulty;
 
-	public CardManager() {
+	public CardManager(GameDifficulty difficulty) {
+		this.difficulty = difficulty;
 		initializeCards();
 		shuffleCards();
 	}
 
 	private void initializeCards() {
-		cardImages = new String[GameConstants.TOTAL_CARDS];
-		for (int i = 0; i < GameConstants.CARD_IMAGES.length; i++) {
-			cardImages[i] = GameConstants.CARD_IMAGES[i];
-			cardImages[i + GameConstants.CARD_IMAGES.length] = GameConstants.CARD_IMAGES[i];
+		cardImages = new String[difficulty.totalCards];
+		int pairsNeeded = difficulty.pairsToMatch;
+
+		// 필요한 만큼의 카드 이미지 쌍 생성
+		for (int i = 0; i < pairsNeeded; i++) {
+			String cardImage = GameConstants.CARD_IMAGES[i % GameConstants.CARD_IMAGES.length];
+			cardImages[i * 2] = cardImage;
+			cardImages[i * 2 + 1] = cardImage;
 		}
 	}
 
@@ -748,14 +951,16 @@ class MatchingGameFrame extends JFrame implements ActionListener {
 	private JButton[] cardButtons;
 	private Timer flipBackTimer;
 	private StartMenuFrame parentFrame;
+	private GameDifficulty difficulty;
 
 	private GameState gameState;
 	private CardManager cardManager;
 
-	public MatchingGameFrame(StartMenuFrame parent) {
+	public MatchingGameFrame(StartMenuFrame parent, GameDifficulty difficulty) {
 		this.parentFrame = parent;
-		gameState = new GameState();
-		cardManager = new CardManager();
+		this.difficulty = difficulty;
+		gameState = new GameState(difficulty);
+		cardManager = new CardManager(difficulty);
 		initializeFrame();
 		createUI();
 		// UI 컴포넌트 생성 완료 후 화면에 표시
@@ -764,7 +969,7 @@ class MatchingGameFrame extends JFrame implements ActionListener {
 	}
 
 	private void initializeFrame() {
-		setTitle("Matching 게임");
+		setTitle("Matching 게임 - " + difficulty.displayName);
 		try {
 			setIconImage(UIUtils.createScaledImageIcon(GameConstants.GAME_ICON).getImage());
 		} catch (Exception e) {
@@ -815,7 +1020,7 @@ class MatchingGameFrame extends JFrame implements ActionListener {
 		titlePanel.setPreferredSize(new Dimension(GameConstants.FRAME_WIDTH, GameConstants.TITLE_HEIGHT));
 		titlePanel.setBackground(new Color(25, 25, 112));
 
-		statusLabel = new JLabel("Matching Game");
+		statusLabel = new JLabel("Matching Game - " + difficulty.displayName);
 		statusLabel.setPreferredSize(new Dimension(GameConstants.FRAME_WIDTH, 30));
 		statusLabel.setForeground(Color.WHITE);
 		statusLabel.setFont(GameConstants.STATUS_FONT);
@@ -841,12 +1046,12 @@ class MatchingGameFrame extends JFrame implements ActionListener {
 
 	private void createCardPanel() {
 		cardPanel = new JPanel();
-		cardPanel.setLayout(new GridLayout(GameConstants.GRID_ROWS, GameConstants.GRID_COLS));
+		cardPanel.setLayout(new GridLayout(difficulty.gridRows, difficulty.gridCols));
 		cardPanel.setPreferredSize(new Dimension(GameConstants.FRAME_WIDTH, GameConstants.FRAME_HEIGHT));
 
-		cardButtons = new JButton[GameConstants.TOTAL_CARDS];
+		cardButtons = new JButton[difficulty.totalCards];
 
-		for (int i = 0; i < GameConstants.TOTAL_CARDS; i++) {
+		for (int i = 0; i < difficulty.totalCards; i++) {
 			cardButtons[i] = createCardButton();
 			cardPanel.add(cardButtons[i]);
 		}
@@ -982,7 +1187,7 @@ class MatchingGameFrame extends JFrame implements ActionListener {
 		gameState.reset();
 		cardManager.shuffleCards();
 
-		updateStatusMessage("Matching Game");
+		updateStatusMessage("Matching Game - " + difficulty.displayName);
 
 		// 모든 카드 버튼 초기화
 		for (JButton button : cardButtons) {
