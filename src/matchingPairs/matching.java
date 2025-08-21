@@ -777,11 +777,6 @@ class GameMenuDialog extends JDialog {
 		buttonPanel.add(restartButton);
 		buttonPanel.add(Box.createVerticalStrut(15));
 
-		// 메인 메뉴로 버튼
-		JButton mainMenuButton = createMenuButton("메인 메뉴로", GameConstants.WARNING_ORANGE);
-		mainMenuButton.addActionListener(e -> goToMainMenu());
-		buttonPanel.add(mainMenuButton);
-		buttonPanel.add(Box.createVerticalStrut(15));
 
 		// 게임 종료 버튼
 		JButton exitButton = createMenuButton("게임 종료", new Color(220, 38, 127));
@@ -1026,20 +1021,6 @@ class MatchingGameFrame extends JFrame implements ActionListener {
 		statusLabel.setFont(GameConstants.STATUS_FONT);
 		statusLabel.setHorizontalAlignment(JLabel.CENTER);
 
-		// 메뉴로 돌아가기 버튼
-		JButton backButton = new JButton("메뉴로");
-		backButton.setFont(new Font("맑은 고딕", Font.BOLD, 14));
-		backButton.setBackground(GameConstants.BUTTON_COLOR);
-		backButton.setForeground(Color.WHITE);
-		backButton.setFocusPainted(false);
-		backButton.setOpaque(true); // 버튼을 불투명하게 설정
-		backButton.setContentAreaFilled(true); // 버튼 내용 영역 채우기 활성화
-		backButton.addActionListener(e -> {
-			parentFrame.showMenu();
-			dispose();
-		});
-
-		titlePanel.add(backButton);
 		titlePanel.add(statusLabel);
 		add(titlePanel, BorderLayout.NORTH);
 	}
