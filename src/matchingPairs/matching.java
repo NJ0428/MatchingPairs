@@ -1011,9 +1011,28 @@ class MatchingGameFrame extends JFrame implements ActionListener {
 	}
 
 	private void createTitlePanel() {
-		titlePanel = new JPanel();
+		titlePanel = new JPanel() {
+			@Override
+			protected void paintComponent(java.awt.Graphics g) {
+				super.paintComponent(g);
+				java.awt.Graphics2D g2d = (java.awt.Graphics2D) g;
+				g2d.setRenderingHint(java.awt.RenderingHints.KEY_RENDERING,
+						java.awt.RenderingHints.VALUE_RENDER_QUALITY);
+
+				// 그라데이션 배경
+				java.awt.GradientPaint gradient = new java.awt.GradientPaint(
+						0, 0, GameConstants.PRIMARY_DARK,
+						0, getHeight(), GameConstants.SECONDARY_BLUE);
+				g2d.setPaint(gradient);
+				g2d.fillRect(0, 0, getWidth(), getHeight());
+				
+				// 상단에 미묘한 하이라이트 추가
+				g2d.setPaint(new Color(255, 255, 255, 30));
+				g2d.fillRect(0, 0, getWidth(), 2);
+			}
+		};
 		titlePanel.setPreferredSize(new Dimension(GameConstants.FRAME_WIDTH, GameConstants.TITLE_HEIGHT));
-		titlePanel.setBackground(new Color(25, 25, 112));
+		titlePanel.setOpaque(false);
 
 		statusLabel = new JLabel("Matching Game - " + difficulty.displayName);
 		statusLabel.setPreferredSize(new Dimension(GameConstants.FRAME_WIDTH, 30));
@@ -1026,9 +1045,35 @@ class MatchingGameFrame extends JFrame implements ActionListener {
 	}
 
 	private void createCardPanel() {
-		cardPanel = new JPanel();
-		cardPanel.setLayout(new GridLayout(difficulty.gridRows, difficulty.gridCols));
+		cardPanel = new JPanel() {
+			@Override
+			protected void paintComponent(java.awt.Graphics g) {
+				super.paintComponent(g);
+				java.awt.Graphics2D g2d = (java.awt.Graphics2D) g;
+				g2d.setRenderingHint(java.awt.RenderingHints.KEY_RENDERING,
+						java.awt.RenderingHints.VALUE_RENDER_QUALITY);
+
+				// 어두운 그라데이션 배경
+				java.awt.GradientPaint gradient = new java.awt.GradientPaint(
+						0, 0, new Color(30, 30, 60),
+						0, getHeight(), new Color(15, 23, 42));
+				g2d.setPaint(gradient);
+				g2d.fillRect(0, 0, getWidth(), getHeight());
+				
+				// 미묘한 노이즈 패턴 추가 (선택적)
+				g2d.setColor(new Color(255, 255, 255, 5));
+				for (int i = 0; i < getWidth(); i += 4) {
+					for (int j = 0; j < getHeight(); j += 4) {
+						if (Math.random() > 0.5) {
+							g2d.fillRect(i, j, 1, 1);
+						}
+					}
+				}
+			}
+		};
+		cardPanel.setLayout(new GridLayout(difficulty.gridRows, difficulty.gridCols, 15, 15));
 		cardPanel.setPreferredSize(new Dimension(GameConstants.FRAME_WIDTH, GameConstants.FRAME_HEIGHT));
+		cardPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
 		cardButtons = new JButton[difficulty.totalCards];
 
@@ -1041,14 +1086,105 @@ class MatchingGameFrame extends JFrame implements ActionListener {
 	}
 
 	private JButton createCardButton() {
-		JButton button = new JButton();
+		class CustomCardButton extends JButton {
+			private boolean isHovered = false;
+			private boolean isPressed = false;
+			
+			@Override
+			protected void paintComponent(java.awt.Graphics g) {
+				java.awt.Graphics2D g2d = (java.awt.Graphics2D) g;
+				g2d.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,
+						java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+				g2d.setRenderingHint(java.awt.RenderingHints.KEY_RENDERING,
+						java.awt.RenderingHints.VALUE_RENDER_QUALITY);
+
+				int width = getWidth();
+				int height = getHeight();
+				
+				// 그림자 효과
+				if (!isPressed) {
+					g2d.setColor(new Color(0, 0, 0, 40));
+					g2d.fillRoundRect(3, 6, width - 3, height - 3, 12, 12);
+				}
+				
+				// 카드 배경 그라데이션
+				Color topColor = isPressed ? new Color(220, 220, 235) : 
+								isHovered ? new Color(250, 250, 255) : new Color(240, 240, 250);
+				Color bottomColor = isPressed ? new Color(200, 200, 220) : 
+								   isHovered ? new Color(235, 235, 250) : new Color(220, 220, 240);
+								   
+				java.awt.GradientPaint cardGradient = new java.awt.GradientPaint(
+						0, 0, topColor,
+						0, height, bottomColor);
+				g2d.setPaint(cardGradient);
+				
+				int offsetX = isPressed ? 2 : 0;
+				int offsetY = isPressed ? 2 : 0;
+				g2d.fillRoundRect(offsetX, offsetY, width - 6, height - 6, 12, 12);
+				
+				// 카드 테두리
+				g2d.setColor(new Color(180, 180, 200));
+				g2d.setStroke(new java.awt.BasicStroke(1.5f));
+				g2d.drawRoundRect(offsetX, offsetY, width - 6, height - 6, 12, 12);
+				
+				// 상단 하이라이트
+				if (!isPressed) {
+					g2d.setColor(new Color(255, 255, 255, 100));
+					g2d.fillRoundRect(offsetX + 2, offsetY + 2, width - 10, height / 3, 10, 10);
+				}
+				
+				super.paintComponent(g);
+			}
+			
+			public void setHovered(boolean hovered) {
+				this.isHovered = hovered;
+				repaint();
+			}
+			
+			public void setPressed(boolean pressed) {
+				this.isPressed = pressed;
+				repaint();
+			}
+		}
+		
+		CustomCardButton button = new CustomCardButton();
 		button.setPreferredSize(new Dimension(GameConstants.BUTTON_WIDTH, GameConstants.BUTTON_HEIGHT));
 		button.setBorderPainted(false);
 		button.setFocusPainted(false);
 		button.setContentAreaFilled(false);
 		button.setIcon(UIUtils.createScaledImageIcon(GameConstants.CARD_BACK_IMAGE));
 		button.addActionListener(this);
-		button.setBorder(new javax.swing.border.LineBorder(Color.LIGHT_GRAY, 2, true));
+		button.setOpaque(false);
+		
+		// 마우스 이벤트 추가
+		button.addMouseListener(new java.awt.event.MouseAdapter() {
+			@Override
+			public void mouseEntered(java.awt.event.MouseEvent e) {
+				if (button.isEnabled()) {
+					button.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+					button.setHovered(true);
+				}
+			}
+			
+			@Override
+			public void mouseExited(java.awt.event.MouseEvent e) {
+				button.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+				button.setHovered(false);
+			}
+			
+			@Override
+			public void mousePressed(java.awt.event.MouseEvent e) {
+				if (button.isEnabled()) {
+					button.setPressed(true);
+				}
+			}
+			
+			@Override
+			public void mouseReleased(java.awt.event.MouseEvent e) {
+				button.setPressed(false);
+			}
+		});
+		
 		return button;
 	}
 
@@ -1115,6 +1251,16 @@ class MatchingGameFrame extends JFrame implements ActionListener {
 
 	private void updateStatusMessage(String message) {
 		statusLabel.setText(message);
+		
+		// 성공 메시지일 때 색상 변경
+		if (message.contains("축하합니다") || message.contains("★")) {
+			statusLabel.setForeground(new Color(255, 215, 0)); // 골드 색상
+		} else if (message.contains("시도한 횟수")) {
+			statusLabel.setForeground(new Color(173, 216, 230)); // 연한 파란색
+		} else {
+			statusLabel.setForeground(Color.WHITE);
+		}
+		
 		statusLabel.revalidate();
 		statusLabel.repaint();
 	}
@@ -1123,17 +1269,56 @@ class MatchingGameFrame extends JFrame implements ActionListener {
 		if (isResetButtonExists())
 			return;
 
-		JButton resetButton = new JButton("다시 시작");
-		resetButton.setFont(new Font("맑은 고딕", Font.BOLD, 14));
-		resetButton.setBackground(GameConstants.BUTTON_COLOR);
+		JButton resetButton = new JButton("다시 시작") {
+			@Override
+			protected void paintComponent(java.awt.Graphics g) {
+				java.awt.Graphics2D g2d = (java.awt.Graphics2D) g;
+				g2d.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,
+						java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+
+				// 둥근 모서리 배경
+				g2d.setColor(getBackground());
+				g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+
+				// 텍스트 그리기
+				super.paintComponent(g);
+			}
+		};
+		
+		resetButton.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+		resetButton.setBackground(GameConstants.SUCCESS_GREEN);
 		resetButton.setForeground(Color.WHITE);
 		resetButton.setFocusPainted(false);
-		resetButton.setOpaque(true); // 버튼을 불투명하게 설정
-		resetButton.setContentAreaFilled(true); // 버튼 내용 영역 채우기 활성화
+		resetButton.setBorderPainted(false);
+		resetButton.setContentAreaFilled(false);
+		resetButton.setPreferredSize(new Dimension(120, 35));
+		
+		// 호버 효과 추가
+		resetButton.addMouseListener(new java.awt.event.MouseAdapter() {
+			private Color originalColor = GameConstants.SUCCESS_GREEN;
+
+			public void mouseEntered(java.awt.event.MouseEvent evt) {
+				resetButton.setBackground(brightenColor(originalColor, 0.2f));
+				resetButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+			}
+
+			public void mouseExited(java.awt.event.MouseEvent evt) {
+				resetButton.setBackground(originalColor);
+				resetButton.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+			}
+		});
+		
 		resetButton.addActionListener(e -> resetGame());
 		titlePanel.add(resetButton);
 		titlePanel.revalidate();
 		titlePanel.repaint();
+	}
+	
+	private Color brightenColor(Color color, float factor) {
+		int r = Math.min(255, (int) (color.getRed() * (1 + factor)));
+		int g = Math.min(255, (int) (color.getGreen() * (1 + factor)));
+		int b = Math.min(255, (int) (color.getBlue() * (1 + factor)));
+		return new Color(r, g, b);
 	}
 
 	private boolean isResetButtonExists() {
